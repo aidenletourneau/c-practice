@@ -1,9 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
 /* COP 3502C Assignment 2
 This program is written by: Aiden Letourneau */
-
-
+#include <stdio.h>
+#include <stdlib.h>
 typedef struct Student{
   int sequenceNumber;
   struct Student* next;
@@ -16,29 +14,26 @@ typedef struct Queue{
   int k;
   int th;
   int number;
-
-
   struct Queue* next;
 } Queue;
 
 
-Queue* createQueue(int garageNumber, int studentsInterested, int k, int th); //done
+
 void enqueue(Queue* queueLinkedList, Student* student); //done
 Student* dequeue(Queue* queueLinkedList); //done 
 int peek(Queue* q); //done
 int isEmpty(Queue* queueLinkedList); //done
 
-
-void createReverseCircle(Queue** head, Queue*); //done
 Student* createStudent(int sequence); //done
-void rearrangeCircle(Queue *q); //done
+void createReverseCircle(Queue* q); //done
 void rearrangeCircle(Queue* q);
 void display(Queue *q); //done
+
+
+void addQueueToLinkedList(Queue** head, Queue*); //done
 int oneCarLeft(Queue* q); //done
 void displayAllGarages(Queue* q); //done
 Queue* removeQueue(Queue* q, int number);
-
-
 void applyPhaseOne(Queue* q);
 Queue* applyPhaseTwo(Queue* q);
 
@@ -48,9 +43,9 @@ int main(){
   Queue* queueLinkedList = NULL;
   scanf( "%d", &numGarages);
   for(int i = 0; i < numGarages; i++){
-    int garageNumber, studentsInterested, k, th;
-    scanf( "%d %d %d %d", &garageNumber, &studentsInterested, &k, &th);
-    createReverseCircle(&queueLinkedList, createQueue(garageNumber, studentsInterested, k, th));
+    Queue* newQueue = (Queue*)malloc(sizeof(Queue));
+    createReverseCircle(newQueue);
+    addQueueToLinkedList(&queueLinkedList, newQueue);
   }
 
   printf("Initial status of nonempty queues");
@@ -79,17 +74,14 @@ int main(){
   //PHASE 2
   printf("\nPhase2 elimination\n");
   while(!oneCarLeft(queueLinkedList)){
-    
     queueLinkedList = applyPhaseTwo(queueLinkedList);
-
   }
-  printf("\nStudent %d from the group for garage %d is the winner!", queueLinkedList->front->sequenceNumber, queueLinkedList->number);
+  printf("\nStudent %d from the group for garage %d is the winner!", peek(queueLinkedList), queueLinkedList->number);
   free(queueLinkedList->front);
   free(queueLinkedList);
-
-
   return 0;
 }
+
 
 int oneCarLeft(Queue* q){
 
@@ -114,19 +106,19 @@ Student* createStudent(int sequence){
   return newStudent;
 }
 
-Queue* createQueue(int garageNumber, int studentsInterested, int k, int th){
-  Queue* newQueue = (Queue*)malloc(sizeof(Queue));
-  newQueue->next = NULL;
-  newQueue->front = NULL;
-  newQueue->back = NULL;
-  newQueue->n = studentsInterested;
-  newQueue->k = k;
-  newQueue->number = garageNumber;
-  newQueue->th = th;
+void createReverseCircle(Queue* q){
+  int garageNumber, studentsInterested, k, th;
+  scanf( "%d %d %d %d", &garageNumber, &studentsInterested, &k, &th);
+  q->next = NULL;
+  q->front = NULL;
+  q->back = NULL;
+  q->n = studentsInterested;
+  q->k = k;
+  q->number = garageNumber;
+  q->th = th;
   for(int i = 0; i < studentsInterested; i++){
-    enqueue(newQueue, createStudent((studentsInterested)-i));
+    enqueue(q, createStudent((studentsInterested)-i));
   }
-  return newQueue;
 }
 
 void enqueue(Queue* q, Student* student){
@@ -196,7 +188,7 @@ int peek(Queue* q){
   return q->front->sequenceNumber;
 }
 
-void createReverseCircle(Queue** head, Queue* newQueue){
+void addQueueToLinkedList(Queue** head, Queue* newQueue){
   if(*head == NULL){
     *head = newQueue;
     return;
@@ -220,9 +212,7 @@ void createReverseCircle(Queue** head, Queue* newQueue){
 
 void applyPhaseOne(Queue* q){
   Student* temp = q->front;
-  while(q->n > q->th){
-    //printf("front: %d back: %d\n",q->front->sequenceNumber, q->back->sequenceNumber);
-    
+  while(q->n > q->th){    
     
     for(int i = 0; i < q->k-2; i ++){
       temp = temp->next;
@@ -255,12 +245,12 @@ Queue* applyPhaseTwo(Queue* q){
   Queue* temp = q;
   Queue* queueWithHighestSequeneceNumber = q;
   while(temp != NULL){
-    if(temp->front->sequenceNumber > queueWithHighestSequeneceNumber->front->sequenceNumber){
+    if(peek(temp) > peek(queueWithHighestSequeneceNumber)){
       queueWithHighestSequeneceNumber = temp;
     }
     temp = temp->next;
   }
-  printf("Eliminated student %d from group for garage %d\n", queueWithHighestSequeneceNumber->front->sequenceNumber, queueWithHighestSequeneceNumber->number);
+  printf("Eliminated student %d from group for garage %d\n", peek(queueWithHighestSequeneceNumber), queueWithHighestSequeneceNumber->number);
   free(dequeue(queueWithHighestSequeneceNumber));
 
 
