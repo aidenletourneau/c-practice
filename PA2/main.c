@@ -16,47 +16,47 @@ typedef struct Queue{
   int number;
 } Queue;
 
-void enqueue(Queue* queueLinkedList, Student* student); //done
-Student* dequeue(Queue* queueLinkedList); //done 
-int peek(Queue* q); //done
-int isEmpty(Queue* queueLinkedList); //done
+// Standard Queue functions
+void enqueue(Queue* queueLinkedList, Student* student);
+Student* dequeue(Queue* queueLinkedList);
+int peek(Queue* q);
+int isEmpty(Queue* queueLinkedList);
 
-Student* createStudent(int sequence); //done
-void createReverseCircle(Queue* q); //done
+// Assignment Specific functions
+Student* createStudent(int sequence);
+void createReverseCircle(Queue* q);
 void rearrangeCircle(Queue* q);
-void display(Queue *q); //done
+void display(Queue *q);
 
-
-void addQueueToLinkedList(Queue** head, Queue*); //done
-int oneCarLeft(Queue** arrayOfQueues); //done
-void displayAllGarages(Queue** arrayOfQueues); //done
+// utility functions
+int oneCarLeft(Queue** arrayOfQueues);
+void displayAllGarages(Queue** arrayOfQueues);
 void applyPhaseOne(Queue* q);
 void applyPhaseTwo(Queue** arrayOfQueues);
 
 
 int main(){
+  // initialize each queue in array of queues to NULL
   Queue** arrayOfQueues = (Queue**)malloc(sizeof(Queue*)*10);
   for (int i = 0; i < 10; i ++){
     arrayOfQueues[i] = NULL;
   }
 
-
+  // creates all input queues in reverse order
   int numGarages;
   scanf("%d", &numGarages);
   for(int i = 0; i < numGarages; i++){
     Queue* newQueue = (Queue*)malloc(sizeof(Queue));
     createReverseCircle(newQueue);
     arrayOfQueues[newQueue->number-1] = newQueue;
-
   }
 
   printf("Initial status of nonempty queues");
   displayAllGarages(arrayOfQueues);
 
-
+  // reverse queues
   for(int i = 0; i < 10; i++){
-    if (arrayOfQueues[i] == NULL) continue;
-    rearrangeCircle(arrayOfQueues[i]);
+    if (arrayOfQueues[i]) rearrangeCircle(arrayOfQueues[i]);
   }
 
   printf("\nAfter ordering status of nonempty queues");
@@ -66,9 +66,10 @@ int main(){
   // PHASE 1
   printf("\nPhase1 elimination\n");
   for(int i = 0; i < 10; i ++){
-    if(arrayOfQueues[i] == NULL) continue;
-    printf("\nGroup for Garage# %d\n", arrayOfQueues[i]->number);
-    applyPhaseOne(arrayOfQueues[i]);
+    if(arrayOfQueues[i]){
+      printf("\nGroup for Garage# %d\n", arrayOfQueues[i]->number);
+      applyPhaseOne(arrayOfQueues[i]);
+    }
   }
 
   // PHASE 2
@@ -77,24 +78,27 @@ int main(){
     applyPhaseTwo(arrayOfQueues);
   }
 
+  // print and free last structs
   for (int i = 0; i < 10; i++){
-    if (arrayOfQueues[i] == NULL) continue;
-    printf("\nStudent %d from the group for garage %d is the winner!", peek(arrayOfQueues[i]), arrayOfQueues[i]->number);
-    free(arrayOfQueues[i]->front);
-    free(arrayOfQueues[i]);
-    free(arrayOfQueues);
-    break;
+    if (arrayOfQueues[i]){
+      printf("\nStudent %d from the group for garage %d is the winner!", peek(arrayOfQueues[i]), arrayOfQueues[i]->number);
+      free(arrayOfQueues[i]->front);
+      free(arrayOfQueues[i]);
+      free(arrayOfQueues);
+      break;
+    } 
   }
+
+
   return 0;
 }
 
-
+// if one car is left, then phase 2 can conclude, remaining student is the winner
 int oneCarLeft(Queue** arrayOfQueues){
 
   int count = 0;
   for(int i = 0; i < 10; i++){
-    if (arrayOfQueues[i] == NULL) continue;
-    count += arrayOfQueues[i]->n;
+    if (arrayOfQueues[i]) count += arrayOfQueues[i]->n;
   }
   if (count != 1){
     return 0;
@@ -149,21 +153,12 @@ Student* dequeue(Queue* q){
   }
 }
 
-void display(Queue* q){
-  int n = 0;
-  Student* temp = q->front;
-
-  printf("%d", q->number);
-  while(temp != q->back && n < 20){
-    printf(" %d", temp->sequenceNumber);
-    temp = temp->next;    
-    n++;
-  }
-  printf(" %d\n", temp->sequenceNumber);
-}
-
 int isEmpty(Queue* q){
   return (q->front == NULL && q->back == NULL);
+}
+
+int peek(Queue* q){
+  return q->front->sequenceNumber;
 }
 
 void rearrangeCircle(Queue *q){
@@ -187,20 +182,17 @@ void rearrangeCircle(Queue *q){
   }
 }
 
-int peek(Queue* q){
-  return q->front->sequenceNumber;
-}
-
 void applyPhaseOne(Queue* q){
   Student* temp = q->front;
+
+  // while the amount of students in queue is greater than threshold
   while(q->n > q->th){    
-    
     for(int i = 0; i < q->k-2; i ++){
       temp = temp->next;
     }
     
     printf("Student# %d eliminated\n", temp->next->sequenceNumber);
-    //if the student we are eliminating is the end if the queue, 
+    //if the student we are eliminating is the end if the queue, adjust queue->back pointer, same with queue->front
     if(temp->next == q->back){
       q->back = temp;
     }
@@ -208,52 +200,60 @@ void applyPhaseOne(Queue* q){
       q->front = temp->next->next;
     }
 
-    //temp is a pointer to a student struct, temp->next is a pointer to the next student struct 
     Student* toFree = temp->next;
     temp->next = temp->next->next;
     free(toFree);
     temp = temp->next;  // Now temp points to the correct element.
-
-
     q->n --;
   }
 
 }
 
 void applyPhaseTwo(Queue** arrayOfQueues){
-  //remove empty queues from queue linked list:::
 
+  // use the first nonNULL queue in array as the first to compare against
   int indexOfHighestQueue;
   for(int i = 0; i < 10; i++){
-    if (arrayOfQueues[i] != NULL){
+    if (arrayOfQueues[i]){
       indexOfHighestQueue = i;
       break;
     }
   }
 
-  for(int i = 0; i < 10; i++){
-    if (arrayOfQueues[i] == NULL) continue;
-    
-    if (peek(arrayOfQueues[i]) > peek(arrayOfQueues[indexOfHighestQueue])){
+  // starting at first nonNULL queue we found above, check against remaining queues to see if their front is greater, if so set new indexOfHighest Queue
+  for(int i = indexOfHighestQueue + 1; i < 10; i++){    
+    if (arrayOfQueues[i] && peek(arrayOfQueues[i]) > peek(arrayOfQueues[indexOfHighestQueue])){
       indexOfHighestQueue = i;
     }
   }
 
-
   printf("Eliminated student %d from group for garage %d\n", peek(arrayOfQueues[indexOfHighestQueue]), arrayOfQueues[indexOfHighestQueue]->number);
   free(dequeue(arrayOfQueues[indexOfHighestQueue]));
 
-
+  // if the queue we just dequeue from is now empty we can free it and set it to NULL in the array
   if (isEmpty(arrayOfQueues[indexOfHighestQueue])){
     free(arrayOfQueues[indexOfHighestQueue]);
     arrayOfQueues[indexOfHighestQueue] = NULL;
   }
 }
 
+void display(Queue* q){
+  int n = 0;
+  Student* temp = q->front;
+
+  printf("%d", q->number);
+  while(temp != q->back && n < 20){
+    printf(" %d", temp->sequenceNumber);
+    temp = temp->next;    
+    n++;
+  }
+  printf(" %d\n", temp->sequenceNumber);
+}
+
 void displayAllGarages(Queue** arrayOfQueues){
   printf("\n");
   for(int i = 0; i < 10; i ++){
-    if (arrayOfQueues[i] == NULL) continue;
+    if (!arrayOfQueues[i]) continue;
     display(arrayOfQueues[i]);
   }
 }
