@@ -14,15 +14,14 @@ typedef struct Garage{
 void printGarage(Garage* g);
 void printAllGarages(int numGarages);
 Garage* createGarage(int x, int y, char* name);
-float calculateDistance(int i1, int i2);
+float calculateDistance(Garage* g1, Garage* g2);
 int numberOfPermutations(int n);
-void getPermutations(int* perm, int* used, int k, int n, float currentDistance);
+void getPermutations(int* perm, int* used, int k, int n);
 void printPermutation(int* permutation, int n);
 float calculatePermutationDistance(int* permutation, int numGarages);
 
 int* bestPermutation;
 Garage** garages;
-
 
 int main(){
   int numGarages = 0;
@@ -36,7 +35,6 @@ int main(){
     garages[i] = createGarage(x, y, name);
   }
 
-
   //let the starting best permutation be the first
   bestPermutation = (int*)malloc(sizeof(int)*numGarages);
   for(int i =0; i< numGarages; i++){
@@ -46,27 +44,21 @@ int main(){
   int perm[16] = {0};
   int used[16] = {0};
 
-  getPermutations(perm, used, 0, numGarages, 0);
+  getPermutations(perm, used, 0, numGarages);
+
 
   //display results
   printf("%.3f\n", calculatePermutationDistance(bestPermutation, numGarages));
-  for (int i = 0; i < numGarages; i += 2){
+  for (int i = 0; i < numGarages; i+= 2){
     printf("(%s, %s, %.3f)\n", 
       garages[bestPermutation[i]]->name, 
       garages[bestPermutation[i+1]]->name, 
-      calculateDistance(bestPermutation[i], bestPermutation[i+1]));
+      calculateDistance(garages[bestPermutation[i]], garages[bestPermutation[i+1]]));
   }
-
-
-  free(bestPermutation);
-  for(int i = 0; i < numGarages; i++){
-    free(garages[i]->name);
-    free(garages[i]);
-  }
-  free(garages);
 
   return 0;
 }
+
 
 Garage* createGarage(int x, int y, char* name){
   Garage* newGarage = (Garage*)malloc(sizeof(Garage));
@@ -78,7 +70,7 @@ Garage* createGarage(int x, int y, char* name){
 }
 
 void printGarage(Garage* g){
-  printf("Garage Name: %s, X: %d, Y: %d\n", g->name, g->x, g->y);
+  printf("X: %d, Y: %d, Garage Name: %s\n", g->x, g->y, g->name);
 }
 
 void printAllGarages(int numGarages){
@@ -87,41 +79,22 @@ void printAllGarages(int numGarages){
   }
 }
 
-float calculateDistance(int i1, int i2){
-  return sqrt(pow((float)(garages[i1]->x - garages[i2]->x), 2) + pow((float)(garages[i1]->y - garages[i2]->y), 2));
+float calculateDistance(Garage* g1, Garage* g2){
+  return sqrt(pow((float)(g1->x - g2->x), 2) + pow((float)(g1->y - g2->y), 2));
 }
 
-void getPermutations(int* perm, int* used, int k, int n, float currentDistance) {
-  
-  if (currentDistance >= calculatePermutationDistance(bestPermutation, n)) {
-    return; // Prune branch if the current distance is worse than the best
-  }
-  
-
+void getPermutations(int* perm, int* used, int k, int n) {
   if (k == n){ 
-    if(currentDistance < calculatePermutationDistance(bestPermutation, n)){
+    if(calculatePermutationDistance(perm, n) < calculatePermutationDistance(bestPermutation, n)){
       memcpy(bestPermutation, perm, sizeof(int)*n);
     }
     return;
   }
-
-
   for (int i = 0; i<n; i++) {
-    if (k == 0 && i != 0){
-      continue;
-    }
-    // else if((k % 2 == 1) && (i == perm[k-1] + 1)){
-    //   continue;
-    // }
     if (!used[i]) { 
-      
       used[i] = 1;
       perm[k] = i;
-      float newDistance = currentDistance;
-      if (k % 2 == 1) {
-          newDistance += calculateDistance(perm[k - 1], perm[k]);
-      }
-      getPermutations(perm, used, k+1, n, newDistance);
+      getPermutations(perm, used, k+1, n);
       used[i] = 0;
     }
   }
@@ -140,20 +113,9 @@ void printPermutation(int* permutation, int n){
 }
 
 float calculatePermutationDistance(int* permutation, int numGarages){
-
   float permutationDistance = 0;
   for (int j = 0; j < numGarages; j += 2){
-    permutationDistance += calculateDistance(permutation[j], permutation[j+1]);
+    permutationDistance += calculateDistance(garages[permutation[j]], garages[permutation[j+1]]);
   }
   return permutationDistance;
 }
-
-/*
-0 1 2 3
-
-
-
-
-
-
-*/
